@@ -57,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
      */
 
     private static final int REQUEST_ENABLE_BT = 3;
-    private static final int REQUEST_DISABLE_BT = 4;
     private MyAdaper myAdapter;
     private MyAdaper myAdapter1;
 
@@ -68,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //检测是否有位置定位的权限
+        // 检测是否有位置定位的权限   Android6.0 以上需要设置定位权限才能搜索蓝牙
         int permission = ActivityCompat.checkSelfPermission(MainActivity.this,
                 "android.permission.ACCESS_COARSE_LOCATION");
         if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -165,7 +164,9 @@ public class MainActivity extends AppCompatActivity {
         rvDevices1.setLayoutManager(new LinearLayoutManager(this));
         rvDevices1.addItemDecoration(new DividerItemDecoration(this, 1));
         rvDevices1.setAdapter(myAdapter1);
-
+        // 解决ScrollView下嵌套RecyclerView 进页面不在顶部
+        rvDevices.setFocusable(false);
+        rvDevices1.setFocusable(false);
         myAdapter.notifyDataSetChanged();
         if (bondedDeviceLists.size() == 0) {
             llHaveNotDevice.setVisibility(View.VISIBLE);
@@ -184,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
                     switchBT.setChecked(true);
                     mBluetoothService = new BluetoothChatService(this, mHandler);
                     mBluetoothService.start();
-                    Log.e("MainActivity", "onActivityResult: 返回的是开启成功了呀-------");
                 } else {
                     switchBT.setChecked(false);
                 }
@@ -209,8 +209,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            Log.e("TAG", "onReceive: -----" + action);
-
             // When discovery finds a device
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Get the BluetoothDevice object from the Intent
@@ -322,7 +320,6 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case Constants.MESSAGE_STATE_CHANGE:
-                    Log.e("DeviceConnectActivity", "handleMessage: --------MESSAGE_STATE_CHANGE-------" + msg.arg1);
                     switch (msg.arg1) {
                         case BluetoothChatService.STATE_CONNECTED:
                             Intent intent = new Intent(MainActivity.this, DeviceConnectActivity.class);
@@ -353,7 +350,6 @@ public class MainActivity extends AppCompatActivity {
                     // save the connected device's name
                     break;
                 case Constants.MESSAGE_TOAST:
-                    Log.e("DeviceConnectActivity", "handleMessage: --------MESSAGE_TOAST");
                     Toast.makeText(MainActivity.this, msg.getData().getString(Constants.TOAST),
                             Toast.LENGTH_SHORT).show();
                     break;
